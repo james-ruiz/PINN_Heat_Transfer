@@ -1,18 +1,21 @@
 
+
+import tensorflow as tf
 import numpy as np
 import scipy.io
 import time
 import sys
 
-from Utilities.utilities import neural_net, tf_session, mean_squared_error, relative_error, condution_2D_error
+from Utilities.utilities_TF2 import neural_net, tf_session, mean_squared_error, relative_error, condution_2D_error
 
 ###############################################################################
 #Add this code to use TF 2.x utilities with TF 1.x code
 ###############################################################################
 
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
+# import tensorflow.compat.v1 as tf
+# tf.disable_v2_behavior()
+
+# tf.compat.v1.disable_eager_execution() 
 
 ###############################################################################
 
@@ -21,10 +24,9 @@ class PINN(object):
     #initialize object
     def __init__(self, 
                  
-                 x_data, 
-                 y_data, 
-                 
-                 T_data,
+                 x_data, #x-values
+                 y_data, #y-values
+                 T_data, #T-values
 
                  # Boundary conditions
                  x_L, y_L, T_L,
@@ -32,32 +34,64 @@ class PINN(object):
                  x_U, y_U, T_U,
                  x_D, y_D, T_D,
 
-                 layers, batch_size):
+                 layers, 
+                 
+                 batch_size):
+
+        #######################################################################
+        #Object Placeholders
+        #######################################################################
 
         # specs
         self.layers = layers
         self.batch_size = batch_size
 
 
-        # data
+        # save loaction and temperature values in a list
         [self.x_data, self.y_data, self.T_data] = [x_data, y_data, T_data]
 
+        #save boundary conditions in a list
         [self.x_L, self.y_L, self.T_L] = [x_L, y_L, T_L]
         [self.x_R, self.y_R, self.T_R] = [x_R, y_R, T_R]
         [self.x_U, self.y_U, self.T_U] = [x_U, y_U, T_U]
         [self.x_D, self.y_D, self.T_D] = [x_D, y_D, T_D]
 
-        # placeholders
-        [self.x_data_tf, self.y_data_tf, self.T_data_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        #######################################################################
+        # placeholders (TF1)
+        #######################################################################
+        
+        # [self.x_data_tf, self.y_data_tf, self.T_data_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        
+        # [self.x_L_tf, self.y_L_tf, self.T_L_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        # [self.x_R_tf, self.y_R_tf, self.T_R_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        # [self.x_U_tf, self.y_U_tf, self.T_U_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        # [self.x_D_tf, self.y_D_tf, self.T_D_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        
+        #######################################################################
+        # placeholders (TF2)
+        #######################################################################
+        
+        [self.x_data_tf, self.y_data_tf, self.T_data_tf] = [[] for _ in range(3)]
 
-        [self.x_L_tf, self.y_L_tf, self.T_L_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
-        [self.x_R_tf, self.y_R_tf, self.T_R_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
-        [self.x_U_tf, self.y_U_tf, self.T_U_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
-        [self.x_D_tf, self.y_D_tf, self.T_D_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        [self.x_L_tf, self.y_L_tf, self.T_L_tf] = [[] for _ in range(3)]
+        [self.x_R_tf, self.y_R_tf, self.T_R_tf] = [[] for _ in range(3)]
+        [self.x_U_tf, self.y_U_tf, self.T_U_tf] = [[] for _ in range(3)]
+        [self.x_D_tf, self.y_D_tf, self.T_D_tf] = [[] for _ in range(3)]
 
-        # neural networks
+        #######################################################################
+        # Iniialize NN
+        #######################################################################
+        
         self.net_T = neural_net(self.x_data, self.y_data, layers=self.layers)
 
+        #######################################################################
+        # Run NN Prediction
+        #######################################################################
+
+        print("Shape (X Data): ", self.x_data.shape)
+        print("X Data: ", self.x_data)
+    
+        #predict temperature
         self.T_data_pred = self.net_T(self.x_data_tf, self.y_data_tf)
 
         # neural networks data at the B.C.
@@ -184,7 +218,7 @@ if __name__ == "__main__":
     T_star = data['T_star']  # N x 1
 
     ######################################################################
-    ######################## Training Data ###############################
+    # Setup Training Data 
     ######################################################################
 
     N_data = N  # int(sys.argv[2])
@@ -210,8 +244,10 @@ if __name__ == "__main__":
     y_D = y_star[y_star == y_star.min()][:, None]
     T_D = T_star[y_star == y_star.min()][:, None]
 
-
-    # Training
+    ###########################################################################
+    # Initialize PINN Object
+    ###########################################################################
+    
     model = PINN(x_data, y_data, T_data,
 
                 x_L, y_L, T_L,
@@ -220,6 +256,12 @@ if __name__ == "__main__":
                 x_D, y_D, T_D,
 
                 layers, batch_size)
+    
+    pause
+    
+    ###########################################################################
+    # Train PINN Object
+    ###########################################################################
 
     model.train(total_time=20, learning_rate=1e-3)
 

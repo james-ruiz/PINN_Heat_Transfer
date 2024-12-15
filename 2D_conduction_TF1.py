@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 import numpy as np
 import scipy.io
@@ -10,9 +11,9 @@ from Utilities.utilities import neural_net, tf_session, mean_squared_error, rela
 #Add this code to use TF 2.x utilities with TF 1.x code
 ###############################################################################
 
-# import tensorflow as tf
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
+import tensorflow as tf
+# import tensorflow.compat.v1 as tf
+# tf.disable_v2_behavior()
 
 ###############################################################################
 
@@ -48,12 +49,13 @@ class PINN(object):
         [self.x_D, self.y_D, self.T_D] = [x_D, y_D, T_D]
 
         # placeholders
-        [self.x_data_tf, self.y_data_tf, self.T_data_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        #[self.x_data_tf, self.y_data_tf, self.T_data_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        [self.x_data_tf, self.y_data_tf, self.T_data_tf] = [[] for _ in range(3)]
 
-        [self.x_L_tf, self.y_L_tf, self.T_L_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
-        [self.x_R_tf, self.y_R_tf, self.T_R_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
-        [self.x_U_tf, self.y_U_tf, self.T_U_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
-        [self.x_D_tf, self.y_D_tf, self.T_D_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        #[self.x_L_tf, self.y_L_tf, self.T_L_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        #[self.x_R_tf, self.y_R_tf, self.T_R_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        #[self.x_U_tf, self.y_U_tf, self.T_U_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
+        #[self.x_D_tf, self.y_D_tf, self.T_D_tf] = [tf.placeholder(tf.float32, shape=[None, 1]) for _ in range(3)]
 
         # neural networks
         self.net_T = neural_net(self.x_data, self.y_data, layers=self.layers)
